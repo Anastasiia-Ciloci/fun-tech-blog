@@ -21,7 +21,7 @@ Step 1. Install npm
 npm init -y
 ```
 
-Step2.Install all modules ypu need
+Step2.Install all modules you need
 
 ```
 npm install express sequelize mysql dotenv bcrypt express-session
