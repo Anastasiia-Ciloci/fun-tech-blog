@@ -1,137 +1,94 @@
-const router = require('express').Router();
-const { Users , Posts, Comments } = require('../../models');
+const router = require("express").Router();
+const Users = require("../../models/Users");
+const bcrypt = require("bcrypt");
 
-// CREATE new user
-router.post('/', async (req, res) => {
+// Validate User and log in
+router.post("/login", async (req, res) => {
   try {
-    const userData = await Users.create({
-      username: req.body.username,
-      email: req.body.email,
-      password: req.body.password,
-    });
-
-    req.session.save(() => {
-      req.session.loggedIn = true;
-
-      res.status(200).json(userData);
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
-  }
-});
-
-// Login
-router.post('/login', async (req, res) => {
-  try {
-    const userData = await Users.findOne({
-      where: {
-        email: req.body.email,
-      },
-    });
-
+    // Uses email to find cooresponding user
+    const userData = await Users.findOne({ where: { email: req.body.email } });
     if (!userData) {
       res
         .status(400)
-        .json({ message: 'Incorrect email or password. Please try again!' });
+        .json({ message: "Incorrect email or password, please try again" });
       return;
     }
 
-    const validPassword = await userData.checkPassword(req.body.password);
-
+    // Validates password
+    const validPassword =  bcrypt.compareSync(
+      req.body.password,
+      userData.password
+    );
     if (!validPassword) {
       res
         .status(400)
-        .json({ message: 'Incorrect email or password. Please try again!' });
+        .json({ message: "Incorrect email or password, please try again" });
       return;
     }
-
+    // Sets loggedIn to true
     req.session.save(() => {
+      req.session.user_id = userData.id;
       req.session.loggedIn = true;
-      console.log(
-        'file: user-routes.js ~ line 57 ~ req.session.save ~ req.session.cookie',
-        req.session.cookie
-      );
-
-      res
-        .status(200)
-        .json({ user: userData, message: 'You are now logged in!' });
+      res.json({ user: userData, message: "You are now logged in!" });
     });
   } catch (err) {
-    console.log(err);
+    res.status(400).json(err);
+  }
+});
+
+// Get all Users
+router.get("/", async (req, res) => {
+  try {
+    const userData = await Users.findAll({});
+    if (!userData) {
+      res.json("No users");
+    } else {
+      res.json(userData);
+    }
+  } catch (err) {
+    res.status(400).json(err);
+  }
+});
+
+// Create User
+router.post("/newuser", async (req, res) => {
+  try {
+    const userData = req.body;
+    userData.password = await bcrypt.hash(req.body.password, 10);
+    console.log("Password: ", userData.password);
+    const newUser = await Users.create(userData);
+
+    res.status(200).json(newUser);
+  } catch (err) {
     res.status(500).json(err);
   }
 });
 
-// Logout
-router.post('/logout', (req, res) => {
+// Update User
+router.put("/:id", (req, res) => {
+  Users.update(
+    {
+      username: req.body.name,
+      password: req.body.password,
+    },
+    {
+      where: {
+        id: req.params.id,
+      },
+    }
+  ).then((update) => {
+    res.json(update);
+  });
+});
+
+// Logout User
+router.post("/logout", (req, res) => {
   if (req.session.loggedIn) {
     req.session.destroy(() => {
       res.status(204).end();
     });
   } else {
     res.status(404).end();
-  }
-});
-
-// Get User by ID
-router.get('/:id', async (req, res) => {
-  try {
-    // finds by the primary key
-    const userData = await User.findByPk(req.params.id, {
-      // include: [{
-      //   model: Product
-      // }]
-    });
-    if (!userData) {
-      res.status(404).json({
-        message: 'No User found with this id.'
-      });
-      return;
-    }
-    res.status(200).json(userData);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-// Update User by ID
-router.put('/:id', async (req, res) => {
-  try {
-    const userData = await Users.update(req.body, {
-      where: {
-        id: req.params.id,
-      },
-    });
-    if (!userData[0]) {
-      res.status(404).json({
-        message: 'No User found with this id.'
-      })
-      return;
-    }
-    res.status(200).json(userData);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-// Delete User by ID 
-router.delete('/:id', async (req, res) => {
-  try {
-    const userData = await Users.destroy({
-      where: {
-        id: req.params.id
-      }
-    })
-    if (!userData) {
-      res.status(404).json({
-        message: 'No User found with this id.'
-      });
-      return;
-    }
-    res.status(200).json(userData);
-  } catch (err) {
-    res.status(500).json(err);
   }
 });
 

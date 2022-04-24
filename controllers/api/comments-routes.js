@@ -1,98 +1,41 @@
-const router = require('express').Router();
-const { Posts, Comments, Users } = require('../../models');
-const auth = require('../../utils/auth');
+const router = require("express").Router();
+const { Comment, User, Post } = require("../../models");
 
-//get all posts
-router.get('/', auth, async (req, res) => {
-  const commentData = await Comments.findAll(
-    {
-      include:[Posts]
-    }
-  ).catch ((err)=>{
-    res.json(err);
-  });
-  const comments = commentData.map((comment) => comment.get({
-    plain: true
-  }));
-  res.render('all', {
-    comments
-  });
-});
-//Create new comment
-router.post('/newpost',auth, async (req,res)=>{
-  try{
-  const commentData = await Comments.create(req.body);
-  if (!commentData) {
-    res.status(404).json({
-      message: 'Comment was not created.'
-    });
-    return;
-  }
-  res.status(200).json(commentData);
-} catch (err) {
-  res.status(400).json(err);
-}
-});
-
-//find post by id
-
-router.get('/:id',auth, async (req,res)=>{
-  try{
-  const commentData = await Comments.findByPk(req.params.id,{
-
-    include:[{
-      model: Posts
-    }]
-  });
-  if (!commentData) {
-    res.status(404).json({
-      message: 'Comment with this id was not found.'
-    });
-    return;
-  }
-  res.status(200).json(commentData);
-} catch (err) {
-  res.status(400).json(err);
-}
-});
-
-//update comment body
-
-router.put('/:id',auth, async (req,res)=>{
-  try{
-  const commentData = await Comments.update(req.body,{
-
-  where:{
-    id:req.params.id,
-  },
-  });
-  if (!commentData) {
-    res.status(404).json({
-      message: 'Comment with this id was not found.'
-    });
-    return;
-  }
-  res.status(200).json(commentData);
-} catch (err) {
-  res.status(400).json(err);
-}
-});
-//delete comments
-router.delete('/:id', auth, async (req, res) => {
+// Get ALL Comments
+router.get("/", async (req, res) => {
   try {
-    const commentData = await Posts.destroy({
-      where: {
-        id: req.params.id,
-        
-      },
+    const dbCommentData = await Comment.findAll({
+      include: [
+        {
+          model: User,
+        },
+        {
+          model: Post,
+        },
+      ],
     });
-
-    if (!commentData) {
-      res.status(404).json({ message: 'Comment with this id was not found' });
-      return;
+    if (!dbCommentData) {
+      res.json("No comments");
+    } else {
+      res.json(dbCommentData);
     }
+  } catch (err) {
+    res.status(400).json(err);
+  }
+});
 
-    res.status(200).json(commentData);
+// Create Comment
+router.post("/", async (req, res) => {
+  try {
+    const newComment = await Comment.create(
+      {
+        comment: req.body.comment,
+        user_id: req.session.user_id,
+        post_id: req.body.postId,
+      },
+      req.body
+    );
+    res.status(200).json(newComment);
   } catch (err) {
     res.status(500).json(err);
   }

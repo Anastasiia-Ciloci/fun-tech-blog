@@ -1,0 +1,7 @@
+{{#if loggedIn}}
+{{#each posts}}
+{{> post-card}}
+{{/each}}
+{{else}}
+<h1>Please log in!</h1>
+{{/if}}

@@ -1,0 +1,14 @@
+<div class="card text-white bg-dark mb-4">
+  <div class="card-header" id="dark-header">
+    <a href="/posts/{{id}}" class="post-link">
+      <h3>{{title}}</h3>
+    </a>
+  </div>
+  <div class="card-body">
+    <h6 class="card-title">Posted by
+      {{user.username}}
+      on
+      {{format_date createdAt}}</h6>
+    <p class="card-text">{{content}}</p>
+  </div>
+</div>

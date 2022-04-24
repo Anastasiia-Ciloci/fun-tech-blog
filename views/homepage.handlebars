@@ -1,0 +1,11 @@
+{{#if loggedIn}}
+<h1 class="mt-5">Welcome to the Fun Tech Blog!</h1>
+{{else}}
+<h1 class="mt-5">Welcome to the Fun Tech Blog!</h1>
+<br>
+<p>Please log in or sign up.</p>
+{{/if}}
+<br>
+{{#each posts}}
+{{> post-link}}
+{{/each}}
