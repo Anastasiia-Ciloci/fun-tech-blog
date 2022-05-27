@@ -130,7 +130,7 @@ router.get("/addpost", (req, res) => {
 // Renders the log-in screen if session is not logged in
 router.get("/login", (req, res) => {
   if (req.session.loggedIn) {
-    return res.redirect("/dashboard");
+    return res.redirect("/homepage");
   }
   res.render("login");
 });

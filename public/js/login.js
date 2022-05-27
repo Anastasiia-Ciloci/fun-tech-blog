@@ -1,22 +1,22 @@
-const loginFormHandler = async (event) => {
+const loginFormHandler = async function (event) {
   event.preventDefault();
-  console.log("Submitted!");
-  // Grab values from form input
-  const email = document.getElementById("email-login").value.trim();
-  const password = document.getElementById("password-login").value.trim();
 
-  // Makes Post request for validation
-  if (email && password) {
-    const response = await fetch("/api/users/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-      headers: { "Content-Type": "application/json" },
-    });
-    if (response.ok) {
-      document.location.replace("/homepage");
-    } else {
-      alert("Failed to log in.");
-    }
+  const usernameEl = document.querySelector("#email-login");
+  const passwordEl = document.querySelector("#password-login");
+
+  const response = await fetch("/api/user/login", {
+    method: "POST",
+    body: JSON.stringify({
+      username: usernameEl.value,
+      password: passwordEl.value,
+    }),
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (response.ok) {
+    document.location.replace("/dashboard");
+  } else {
+    alert("Failed to login");
   }
 };
 
